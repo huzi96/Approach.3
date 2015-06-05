@@ -40,3 +40,4 @@ myRect getRect(Mat &);
 void shrink(Mat &mask, myRect rect, set<patch>& patches, Mat &ori,set<patch>& good);
 double sim(const patch &, const patch &);
 void getSimilar(set<patch> & patches, set<patch> & good, map<patch, patch> & indexMap);
+double getSimSturcture(const patch & op1,const patch &op2);

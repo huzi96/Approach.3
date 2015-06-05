@@ -108,9 +108,18 @@ double sim(const patch & op1, const  patch &op2)
     {
         m += (mean1[i] - mean2[i])*(mean1[i] - mean2[i]);
     }
+    cout<<"trad "<<sqrt(m)<<endl;
     return sqrt(m);
 }
-
+Scalar getMSSIM(const Mat& i1, const Mat& i2);
+double getSimSturcture(const patch & op1,const patch &op2)
+{
+    Scalar res=getMSSIM(op1.data, op2.data);
+    //cout<<"res "<<res<<endl;
+    double ans=res[0];//+res[1]+res[2];
+    cout<<1/ans<<endl;
+    return 1/ans;
+}
 
 //以下均为库函数
 Scalar getMSSIM(const Mat& i1, const Mat& i2)

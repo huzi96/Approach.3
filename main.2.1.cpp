@@ -127,22 +127,23 @@ int main()
     //对于patches中的每个元素,在good中找到与之最相似的,并将结果存入indexMap中
     
     /*
-     set<patch>::iterator itg = good.begin(),itd = patches.begin();
-     int cnt = 0;
-     for (itd = patches.begin(); itd != patches.end(); itd++)//对于每一个需要打补丁的地方
-     {
-     double min = 1000000; //INF
-     for (itg = good.begin(); itg != good.end(); itg++)//在good里找到和它最相似的的，放到一个map indexMap里
-     {
-     double crt = sim(*itd, *itg);
-     if (crt < min)
-     {
-     min = crt;
-     indexMap[*itd] = *itg;//itd指向dst上需要打补丁的地方 itg指向选出来的补丁
-     }
-     }
-     cout << cnt++ << endl;
-     }
+    set<patch>::iterator itg = good.begin(),itd = patches.begin();
+    int cnt = 0;
+    for (itd = patches.begin(); itd != patches.end(); itd++)//对于每一个需要打补丁的地方
+    {
+        double min = 1000000; //INF
+        for (itg = good.begin(); itg != good.end(); itg++)//在good里找到和它最相似的的，放到一个map indexMap里
+        {
+            double crt = sim(*itd, *itg);
+            crt=getSimSturcture(*itd, *itg);
+            if (crt < min)
+            {
+                min = crt;
+                indexMap[*itd] = *itg;//itd指向dst上需要打补丁的地方 itg指向选出来的补丁
+            }
+        }
+        cout << cnt++ << endl;
+    }
      */
     
     
@@ -211,9 +212,9 @@ void dp(Mat & seamMatrix,Mat &oldPatch,Mat &newPatch,Mat &res)
     
     for (int i = 1; i < HALFPATCHSIZE; i++)
     {
-        dist[0][i] = dist[0][i - 1] + seamMatrix.at<uchar>(0, i);
+        dist[0][i] = dist[0][i - 1] + seamMatrix.at<int>(0, i);
         route[0][i] = 1;//左
-        dist[i][0] = dist[i - 1][0] + seamMatrix.at<uchar>(i, 0);
+        dist[i][0] = dist[i - 1][0] + seamMatrix.at<int>(i, 0);
         route[i][0] = 2;//上
     }
     for (int i = 1; i < HALFPATCHSIZE; i++)
@@ -222,12 +223,12 @@ void dp(Mat & seamMatrix,Mat &oldPatch,Mat &newPatch,Mat &res)
         {
             if (dist[i][j - 1] > dist[i - 1][j])
             {
-                dist[i][j] = dist[i - 1][j] + seamMatrix.at<uchar>(i, j);
+                dist[i][j] = dist[i - 1][j] + seamMatrix.at<int>(i, j);
                 route[i][j] = 2;
             }
             else
             {
-                dist[i][j] = dist[i][j - 1] + seamMatrix.at<uchar>(i, j);
+                dist[i][j] = dist[i][j - 1] + seamMatrix.at<int>(i, j);
                 route[i][j] = 1;
             }
         }
@@ -280,7 +281,7 @@ void exertPatch(Point anchor, Mat &ROI,Mat &dst,int pos)//我们认为左上角�
     Mat newLeftTopROI(ROI, Rect(0,0, HALFPATCHSIZE, HALFPATCHSIZE));
     Mat oldLeftTopROI(dst, Rect(anchor.x, anchor.y, HALFPATCHSIZE, HALFPATCHSIZE));
     
-    Mat seamMatrix(HALFPATCHSIZE, HALFPATCHSIZE, CV_8UC1, Scalar(0));
+    Mat seamMatrix(HALFPATCHSIZE, HALFPATCHSIZE, CV_32FC1, Scalar(0));
     
     for (int k = 0; k < PATCH_SIZE/2; k++)
     {
@@ -288,13 +289,30 @@ void exertPatch(Point anchor, Mat &ROI,Mat &dst,int pos)//我们认为左上角�
         {
             //需要修改
             int diff = 0;
-            for (int i = 0; i < 3; i++)
+            if(k>0&&k<HALFPATCHSIZE-1&&l>0&&l<HALFPATCHSIZE-1)
             {
-                diff += abs(newLeftTopROI.at<Vec3b>(k, l)[i] - oldLeftTopROI.at<Vec3b>(k, l)[i]);
+                for (int m = -1; m < 2; m++)
+                {
+                    for (int j=-1; j<2; j++)
+                    {
+                        for (int i=0; i<3; i++)
+                        {
+                            diff += abs(newLeftTopROI.at<Vec3b>(k+j, l+m)[i] - oldLeftTopROI.at<Vec3b>(k+j, l+m)[i]);
+                        }
+                    }
+                }
+                diff/=9;
             }
-            diff /= 3;
+            else
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    diff += abs(newLeftTopROI.at<Vec3b>(k, l)[i] - oldLeftTopROI.at<Vec3b>(k, l)[i]);
+                }
+                diff /= 3;
+            }
             //diff += 128;
-            seamMatrix.at<uchar>(k, l) = diff;
+            seamMatrix.at<int>(k, l) = diff;
         }
     }
     
@@ -332,7 +350,7 @@ void exertPatchR(Point anchor, Mat &ROI, Mat &dst, int pos)//我们认为左上�
                 diff += newRightTopROI.at<Vec3b>(k, l)[i] - oldRightTopROI.at<Vec3b>(k, l)[i];
             }
             diff /= 3;
-            seamMatrix.at<uchar>(k, l) = diff;
+            seamMatrix.at<int>(k, l) = diff;
         }
     }
     //DP
