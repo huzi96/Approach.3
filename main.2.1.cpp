@@ -94,7 +94,7 @@ int main()
 {
     namedWindow("draw");//原图绘制窗口
     Mat src, copy, dst;//dst为库函数输出
-    src = imread("test8.jpg");//读入目标图像
+    src = imread("testmiga.png");//读入目标图像
     
     copy = src.clone();//拷贝，以后仅对copy更改，不再更改src
     mask = new Mat(src.rows, src.cols, CV_8UC1, Scalar(0));//建立一个原图大小的单通道图像矩阵
